@@ -1,5 +1,7 @@
 # vLLM for Gemma 4 31B IT (NVFP4)
 
+By [Bravr.ai](https://bravr.ai)
+
 vLLM deployment of [nvidia/Gemma-4-31B-IT-NVFP4](https://huggingface.co/nvidia/Gemma-4-31B-IT-NVFP4) optimised for a single NVIDIA RTX PRO 6000 Blackwell GPU.
 
 ## Overview
