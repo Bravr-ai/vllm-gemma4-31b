@@ -1,0 +1,56 @@
+services:
+  vllm:
+    build: .
+    image: vllm-custom-nightly
+    container_name: vllm-gemma4-31b-nvfp4
+    ipc: host
+    ports:
+      - "8005:8000"
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+      - ./tool_chat_template_gemma4.jinja:/app/tool_chat_template_gemma4.jinja:ro
+    environment:
+      NVIDIA_VISIBLE_DEVICES: "all"
+      CUDA_VISIBLE_DEVICES: "0"
+      CUDA_DEVICE_ORDER: "PCI_BUS_ID"
+      HUGGING_FACE_HUB_TOKEN: "${HUGGING_FACE_HUB_TOKEN}"
+
+      VLLM_WORKER_MULTIPROC_METHOD: "spawn"
+      SAFETENSORS_FAST_GPU: "1"
+      VLLM_DISABLE_PYNCCL: "1"
+      NCCL_IB_DISABLE: "1"
+      VLLM_ALLOW_LONG_MAX_MODEL_LEN: "1"
+      VLLM_NVFP4_GEMM_BACKEND: "cutlass"
+    command: >
+      nvidia/Gemma-4-31B-IT-NVFP4
+      --served-model-name super
+      --trust-remote-code
+      --quantization modelopt
+      --tensor-parallel-size 1
+      --max-num-seqs 8
+      --max-num-batched-tokens 16384
+      --gpu-memory-utilization 0.95
+      --reasoning-parser gemma4
+      --tool-call-parser gemma4
+      --enable-auto-tool-choice
+      --enable-prefix-caching
+      --max-model-len 262144
+      --enable-chunked-prefill
+      --kv-cache-dtype fp8
+
+      --safetensors-load-strategy prefetch
+      --chat-template /app/tool_chat_template_gemma4.jinja
+      --chat-template-content-format string
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - ai-net
+
+networks:
+  ai-net:
+    external: true
